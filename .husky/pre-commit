@@ -1,0 +1,42 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check for package-lock.json
+if [ -f "package-lock.json" ]; then
+  echo "❌ Error: package-lock.json detected!"
+  echo "This project uses Yarn. Please delete package-lock.json and use yarn commands instead."
+  echo "To fix:"
+  echo "1. rm package-lock.json"
+  echo "2. yarn install"
+  exit 1
+fi
+
+# Verify yarn.lock is up to date
+if ! yarn check --integrity; then
+  echo "❌ Error: yarn.lock is out of sync with package.json"
+  echo "Please run 'yarn install' to update the lockfile"
+  exit 1
+fi
+
+# Only run on workflow files
+if git diff --cached --name-only | grep -q '^\.github/workflows/'; then
+  echo "🔍 Validating GitHub workflow files..."
+  
+  # Check if actionlint is installed
+  if ! command -v actionlint >/dev/null 2>&1; then
+    echo "❌ actionlint is not installed. Please run:"
+    echo "   brew install actionlint"
+    exit 1
+  fi
+
+  # Run actionlint on staged workflow files
+  git diff --cached --name-only | grep '^\.github/workflows/' | while read -r file; do
+    if ! actionlint "$file"; then
+      echo "❌ Workflow validation failed for $file"
+      echo "   To skip validation, use: git commit --no-verify"
+      exit 1
+    fi
+  done
+
+  echo "✅ All workflow files validated successfully"
+fi 

@@ -1,0 +1,94 @@
+{
+  "version": "v1.0.0",
+  "build": {
+    "hash": "${process.env.BUILD_HASH || 'pending'}",
+    "timestamp": "${new Date().toISOString()}",
+    "environment": "production",
+    "node_version": "18.x",
+    "claude_version": "claude-3-opus-20240229"
+  },
+  "deployment": {
+    "frontend": {
+      "url": "https://mindmate.app",
+      "provider": "Vercel",
+      "region": "us-east-1",
+      "build_time": "pending"
+    },
+    "backend": {
+      "url": "https://api.mindmate.app",
+      "provider": "Railway",
+      "region": "us-east-1",
+      "build_time": "pending"
+    },
+    "database": {
+      "provider": "Supabase",
+      "region": "us-east-1",
+      "version": "14.0.0",
+      "migration_version": "1.0.0"
+    }
+  },
+  "features": {
+    "memory_opt_in": {
+      "enabled": false,
+      "requires_consent": true,
+      "default_state": "disabled"
+    },
+    "export_pdf": {
+      "enabled": true,
+      "max_size": "10MB",
+      "formats": ["PDF", "JSON"]
+    },
+    "timeline_ui": {
+      "enabled": true,
+      "data_points": 30,
+      "update_interval": "1h"
+    }
+  },
+  "monitoring": {
+    "posthog": {
+      "enabled": true,
+      "project_id": "pending",
+      "events_tracked": ["pageview", "reflection", "export", "consent"]
+    },
+    "sentry": {
+      "enabled": true,
+      "dsn": "pending",
+      "environment": "production"
+    },
+    "uptime": {
+      "provider": "UptimeRobot",
+      "check_interval": "60s",
+      "endpoints": [
+        "https://mindmate.app/health",
+        "https://api.mindmate.app/health"
+      ]
+    }
+  },
+  "security": {
+    "gdpr": {
+      "compliant": true,
+      "consent_required": true,
+      "data_retention": "30d",
+      "deletion_enabled": true
+    },
+    "encryption": {
+      "enabled": true,
+      "algorithm": "AES-256-GCM",
+      "key_rotation": "30d"
+    },
+    "api_keys": {
+      "claude": {
+        "primary": "active",
+        "backup": "standby",
+        "rotation_interval": "24h"
+      }
+    }
+  },
+  "dependencies": {
+    "claude_api": "^3.0.0",
+    "posthog": "^2.0.0",
+    "sentry": "^7.0.0",
+    "prisma": "^5.0.0",
+    "next": "^14.0.0"
+  }
+} 
