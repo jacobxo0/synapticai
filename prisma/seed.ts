@@ -63,8 +63,8 @@ async function main() {
   // Create a test mood log
   const moodLog = await prisma.moodLog.create({
     data: {
-      mood: 8,
-      note: 'Feeling productive today!',
+      mood: "8",
+      note: "Feeling great after completing my first goal!",
       userId: user.id,
     },
   });

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { Mood, MOOD_CONFIG } from '@/stores/useMoodStore'
-import { Tone, TONE_CONFIG } from '@/stores/useToneStore'
+import { Mood, MOOD_CONFIG } from '@stores/useMoodStore'
+import { Tone, TONE_CONFIG } from '@stores/useToneStore'
 
 interface AnalysisResult {
   suggestedMood: Mood

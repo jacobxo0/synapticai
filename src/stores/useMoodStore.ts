@@ -1,44 +1,37 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type Mood = 'happy' | 'thoughtful' | 'focused' | 'neutral'
+export type Mood = 'happy' | 'thoughtful' | 'neutral' | 'focused'
 
 export const MOOD_CONFIG = {
   happy: {
     label: 'Happy',
-    color: 'text-yellow-500',
-    icon: '😊'
+    icon: '😊',
+    color: 'text-green-500',
   },
   thoughtful: {
     label: 'Thoughtful',
+    icon: '🤔',
     color: 'text-blue-500',
-    icon: '🤔'
-  },
-  focused: {
-    label: 'Focused',
-    color: 'text-purple-500',
-    icon: '🎯'
   },
   neutral: {
     label: 'Neutral',
+    icon: '😐',
     color: 'text-gray-500',
-    icon: '😐'
-  }
+  },
+  focused: {
+    label: 'Focused',
+    icon: '🎯',
+    color: 'text-purple-500',
+  },
 }
 
 interface MoodState {
-  currentMood: Mood
-  setMood: (mood: Mood) => void
+  currentMood: Mood;
+  setMood: (mood: Mood) => void;
 }
 
-export const useMoodStore = create<MoodState>()(
-  persist(
-    (set) => ({
-      currentMood: 'neutral',
-      setMood: (mood) => set({ currentMood: mood })
-    }),
-    {
-      name: 'synapticai-mood-storage'
-    }
-  )
-) 
+export const useMoodStore = create<MoodState>((set) => ({
+  currentMood: 'neutral',
+  setMood: (mood) => set({ currentMood: mood }),
+})); 

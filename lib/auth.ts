@@ -1,18 +1,14 @@
-import { NextAuthOptions } from 'next-auth';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from './prisma';
-import GithubProvider from 'next-auth/providers/github';
+import { AuthOptions } from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import GithubProvider from "next-auth/providers/github";
+import prisma from "@/lib/prisma";
 
-if (!process.env.GITHUB_ID || !process.env.GITHUB_SECRET) {
-  throw new Error('Missing GitHub OAuth credentials');
-}
-
-export const authOptions: NextAuthOptions = {
+export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
+      clientId: process.env.GITHUB_ID || "",
+      clientSecret: process.env.GITHUB_SECRET || "",
     }),
   ],
   callbacks: {
@@ -22,9 +18,5 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-  },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
   },
 }; 

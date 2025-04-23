@@ -11,20 +11,22 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  todos         Todo[]
-  goals         Goal[]
-  conversations Conversation[]
-  messages      Message[]
-  moodLogs      MoodLog[]
+  id                    String    @id @default(cuid())
+  name                  String?
+  email                 String    @unique
+  emailVerified         DateTime?
+  image                 String?
+  isOnboarded           Boolean   @default(false)
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  accounts              Account[]
+  sessions              Session[]
+  todos                 Todo[]
+  goals                 Goal[]
+  conversations         Conversation[]
+  messages              Message[]
+  moodLogs              MoodLog[]
 }
 
 model Account {
@@ -99,7 +101,7 @@ model Message {
 
 model MoodLog {
   id        String   @id @default(cuid())
-  mood      Int
+  mood      String
   note      String?
   createdAt DateTime @default(now())
   userId    String

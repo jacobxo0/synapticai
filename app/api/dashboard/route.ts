@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 export async function GET() {
@@ -15,24 +15,23 @@ export async function GET() {
       where: { userId: session.user.id },
     }),
     prisma.goal.findMany({
-      where: { 
+      where: {
         userId: session.user.id,
-        status: { not: 'COMPLETED' }
       },
     }),
     prisma.moodLog.findFirst({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: 'desc' },
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     }),
   ]);
 
   return NextResponse.json({
-    todoCount: todos.length,
-    completedTodoCount: todos.filter(todo => todo.completed).length,
-    activeGoals: goals.length,
-    latestMood: latestMood ? {
-      mood: latestMood.mood,
-      note: latestMood.note,
-    } : undefined,
+    todos,
+    goals,
+    latestMood,
   });
 } 
