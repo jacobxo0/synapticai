@@ -3,7 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  swcMinify: true,
   images: {
     domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
@@ -11,6 +10,24 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
     scrollRestoration: true,
+  },
+  // Force yarn usage
+  packageManager: 'yarn',
+  // Ensure proper module resolution
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.devtool = 'eval-source-map';
+    }
+    // Ensure proper module resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+      '@app': require('path').resolve(__dirname, 'app'),
+      '@components': require('path').resolve(__dirname, 'src/components'),
+      '@stores': require('path').resolve(__dirname, 'src/stores'),
+      '@lib': require('path').resolve(__dirname, 'lib'),
+    };
+    return config;
   },
   async headers() {
     return [
@@ -65,12 +82,6 @@ const nextConfig = {
         permanent: true,
       },
     ];
-  },
-  webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      config.devtool = 'eval-source-map';
-    }
-    return config;
   },
 }
 

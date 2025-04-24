@@ -38,14 +38,13 @@ yarn-error.log*
 logs
 *.log
 
-# Environment
+# Environment (allowing .env.local for development)
 .env
-.env.*
+.env.production
+.env.development
+.env.test
 !.env.example
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+!.env.local
 
 # Vercel
 .vercel
@@ -74,6 +73,9 @@ logs
 /prisma/*.db-journal
 /prisma/migrations/*
 !/prisma/migrations/.gitkeep
+prisma/generated/
+*.db
+*.db-journal
 
 # Cache & Temporary
 .cache
@@ -89,12 +91,6 @@ logs
 *.min.css
 *.map
 
-# Local files
-*.local
-local.*
-
 # System files
 .DS_Store
 Thumbs.db
-
-.vercel

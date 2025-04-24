@@ -1,105 +1,71 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { AnalyticsService } from '../services/analytics';
-
-type AnalyticsEvent = {
-  name: string;
-  properties?: Record<string, unknown>;
-};
+import { useEffect, useRef } from 'react';
+import { trackPageView, trackScroll, trackTime, trackFeatureUse } from '@/services/analytics';
+import { AnalyticsEvent } from '@/types/core';
 
 type AnalyticsHook = {
-  trackFeatureUse: (featureName: string, properties?: Record<string, unknown>) => void;
-  trackAIInteraction: (interactionType: string, properties?: Record<string, unknown>) => void;
+  trackEvent: (event: AnalyticsEvent) => void;
 };
 
-export const useAnalytics = (pageName: string): AnalyticsHook => {
+export const useAnalytics = (): AnalyticsHook => {
   const startTime = useRef<number>(Date.now());
-  const maxScroll = useRef<number>(0);
-  const isTracking = useRef<boolean>(true);
-
-  const trackEvent = useCallback((event: AnalyticsEvent) => {
-    if (!isTracking.current) return;
-    AnalyticsService.trackEvent(event.name, event.properties);
-  }, []);
+  const lastScrollDepth = useRef<number>(0);
 
   useEffect(() => {
-    // Track page view on mount
-    trackEvent({ name: 'page_view', properties: { page: pageName } });
-
-    // Track scroll depth
     const handleScroll = () => {
-      if (!isTracking.current) return;
-      
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPosition = window.scrollY;
-      const scrollPercentage = (scrollPosition / scrollHeight) * 100;
+      const scrollDepth = Math.round((window.scrollY / scrollHeight) * 100);
       
-      if (scrollPercentage > maxScroll.current) {
-        maxScroll.current = scrollPercentage;
-        trackEvent({
-          name: 'scroll_depth',
-          properties: {
-            page: pageName,
-            depth: maxScroll.current,
-            timestamp: Date.now(),
-          },
-        });
+      if (scrollDepth > lastScrollDepth.current + 10) {
+        lastScrollDepth.current = scrollDepth;
+        const timeOnPage = (Date.now() - startTime.current) / 1000;
+        trackScroll(window.location.pathname, scrollDepth, timeOnPage);
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Track time on page
-    const handleVisibilityChange = () => {
-      if (!isTracking.current) return;
-      
-      if (document.visibilityState === 'hidden') {
-        const duration = (Date.now() - startTime.current) / 1000;
-        trackEvent({
-          name: 'time_on_page',
-          properties: {
-            page: pageName,
-            duration,
-            exit_type: 'natural',
-          },
-        });
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Cleanup
-    const currentStartTime = startTime.current;
+    window.addEventListener('scroll', handleScroll);
     return () => {
-      isTracking.current = false;
       window.removeEventListener('scroll', handleScroll);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      
-      if (currentStartTime) {
-        const duration = (Date.now() - currentStartTime) / 1000;
-        trackEvent({
-          name: 'time_on_page',
-          properties: {
-            page: pageName,
-            duration,
-            exit_type: 'navigation',
-          },
-        });
-      }
+      const timeOnPage = (Date.now() - startTime.current) / 1000;
+      trackTime(window.location.pathname, timeOnPage, 'exit');
     };
-  }, [pageName, trackEvent]);
+  }, []);
 
-  return {
-    trackFeatureUse: (featureName: string, properties?: Record<string, unknown>) => {
-      trackEvent({
-        name: 'feature_use',
-        properties: { feature: featureName, ...properties },
-      });
-    },
-    trackAIInteraction: (interactionType: string, properties?: Record<string, unknown>) => {
-      trackEvent({
-        name: 'ai_interaction',
-        properties: { type: interactionType, ...properties },
-      });
-    },
+  const trackEvent = (event: AnalyticsEvent): void => {
+    switch (event.name) {
+      case 'synapticai.page.viewed':
+        trackPageView(event.properties?.page_name || window.location.pathname, event.properties);
+        startTime.current = Date.now();
+        lastScrollDepth.current = 0;
+        break;
+      case 'synapticai.engagement.scroll':
+        if (event.properties?.scroll_depth !== undefined && event.properties?.time_on_page !== undefined) {
+          trackScroll(
+            event.properties.page_name || window.location.pathname,
+            event.properties.scroll_depth,
+            event.properties.time_on_page
+          );
+        }
+        break;
+      case 'synapticai.engagement.time':
+        if (event.properties?.duration !== undefined) {
+          trackTime(
+            event.properties.page_name || window.location.pathname,
+            event.properties.duration,
+            event.properties.exit_type || 'manual'
+          );
+        }
+        break;
+      case 'synapticai.feature.used':
+        if (event.properties?.feature_name && event.properties?.interaction_type) {
+          trackFeatureUse(
+            event.properties.feature_name,
+            event.properties.interaction_type,
+            event.properties
+          );
+        }
+        break;
+    }
   };
+
+  return { trackEvent };
 }; 

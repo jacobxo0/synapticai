@@ -1,8 +1,8 @@
-import { NextAuthOptions, getServerSession } from 'next-auth';
+import { AuthOptions } from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import prisma from './prisma';
 
-export const authOptions: NextAuthOptions = {
+export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt'
@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
   }
 };
 
-export const getServerAuthSession = async () => {
-  const session = await getServerSession(authOptions);
+export const getServerSession = async () => {
+  const session = await auth();
   return session;
 }; 

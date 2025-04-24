@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CodeAnalysisDisplay } from '@/components/CodeAnalysisDisplay'
+import { CodeAnalysisDisplay } from '../components/CodeAnalysisDisplay'
 
 export default function AnalyzePage() {
   const [fileName, setFileName] = useState('')

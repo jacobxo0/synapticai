@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
@@ -27,6 +28,12 @@ model User {
   conversations         Conversation[]
   messages              Message[]
   moodLogs              MoodLog[]
+  userConsents          UserConsent[]
+  memories              Memory[]
+  journalEntries        JournalEntry[]
+  tonePreferences       TonePreference[]
+  reflections           Reflection[]
+  coachingSessions      CoachingSession[]
 }
 
 model Account {
@@ -100,10 +107,113 @@ model Message {
 }
 
 model MoodLog {
+  id            String         @id @default(cuid())
+  mood          String
+  note          String?
+  createdAt     DateTime       @default(now())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journalEntry  JournalEntry[]
+}
+
+model UserConsent {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String
+  enabled     Boolean  @default(true)
+  lastUpdated DateTime @default(now())
+}
+
+model SessionConsent {
+  id          String   @id @default(cuid())
+  sessionId   String
+  type        String
+  enabled     Boolean  @default(true)
+  lastUpdated DateTime @default(now())
+}
+
+model Memory {
   id        String   @id @default(cuid())
-  mood      String
-  note      String?
-  createdAt DateTime @default(now())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  mood      MoodLog? @relation(fields: [moodId], references: [id])
+  moodId    String?
+  tone      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PromptTemplate {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TestResult {
+  id          String   @id @default(cuid())
+  name        String
+  status      String
+  output      String?
+  error       String?
+  duration    Int
+  createdAt   DateTime @default(now())
+  testReport  TestReport? @relation(fields: [reportId], references: [id])
+  reportId    String?
+}
+
+model TestReport {
+  id          String   @id @default(cuid())
+  name        String
+  status      String
+  summary     String?
+  results     TestResult[]
+  createdAt   DateTime @default(now())
+}
+
+model TonePreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tone      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reflection {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CoachingSession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  notes     String?
+  status    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

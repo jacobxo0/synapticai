@@ -4,18 +4,26 @@ import { kv } from '@vercel/kv';
 // Memory cache fallback
 const memoryCache = new Map<string, { value: any; expiresAt: number }>();
 
+interface CacheOptions {
+  ttlSeconds?: number;
+}
+
 export class Cache {
   private redis: Redis | null = null;
   private static instance: Cache;
 
   private constructor() {
-    try {
-      this.redis = new Redis({
-        url: process.env.REDIS_URL!,
-        token: process.env.REDIS_TOKEN!,
-      });
-    } catch (error) {
-      console.warn('Redis connection failed, falling back to memory cache');
+    if (process.env.REDIS_URL && process.env.REDIS_TOKEN) {
+      try {
+        this.redis = new Redis({
+          url: process.env.REDIS_URL,
+          token: process.env.REDIS_TOKEN,
+        });
+      } catch (error) {
+        console.warn('Redis connection failed, falling back to memory cache:', error);
+      }
+    } else {
+      console.warn('Redis credentials not found, using memory cache');
     }
   }
 
@@ -44,7 +52,9 @@ export class Cache {
     }
   }
 
-  async set<T>(key: string, value: T, ttlSeconds: number = 3600): Promise<void> {
+  async set<T>(key: string, value: T, options: CacheOptions = {}): Promise<void> {
+    const { ttlSeconds = 3600 } = options;
+    
     try {
       if (this.redis) {
         await this.redis.set(key, value, { ex: ttlSeconds });
@@ -68,6 +78,22 @@ export class Cache {
       }
     } catch (error) {
       console.error('Cache delete error:', error);
+    }
+  }
+
+  async clear(): Promise<void> {
+    try {
+      if (this.redis) {
+        // Only clear keys with our prefix to avoid affecting other services
+        const keys = await this.redis.keys('synapticai:*');
+        if (keys.length > 0) {
+          await this.redis.del(...keys);
+        }
+      } else {
+        memoryCache.clear();
+      }
+    } catch (error) {
+      console.error('Cache clear error:', error);
     }
   }
 }

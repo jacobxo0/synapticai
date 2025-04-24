@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-
-export type Tone = 'casual' | 'analytical' | 'enthusiastic' | 'inquisitive';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { Tone } from '@/types/core'
 
 export const TONE_CONFIG = {
   casual: {
@@ -30,7 +30,14 @@ interface ToneState {
   setTone: (tone: Tone) => void;
 }
 
-export const useToneStore = create<ToneState>((set) => ({
-  currentTone: 'casual',
-  setTone: (tone) => set({ currentTone: tone }),
-})); 
+export const useToneStore = create<ToneState>()(
+  persist(
+    (set) => ({
+      currentTone: 'casual',
+      setTone: (tone) => set({ currentTone: tone }),
+    }),
+    {
+      name: 'tone-storage',
+    }
+  )
+); 

@@ -1,22 +1,24 @@
-import { AuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import GithubProvider from "next-auth/providers/github";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import GitHub from "next-auth/providers/github";
+import type { NextAuthConfig } from "next-auth";
+import { getServerSession } from "next-auth";
 
-export const authOptions: AuthOptions = {
+export const config = {
   adapter: PrismaAdapter(prisma),
-  providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_ID || "",
-      clientSecret: process.env.GITHUB_SECRET || "",
-    }),
-  ],
+  providers: [GitHub],
   callbacks: {
-    session: async ({ session, user }) => {
-      if (session?.user) {
+    session({ session, user }) {
+      if (session.user) {
         session.user.id = user.id;
       }
       return session;
-    },
-  },
-}; 
+    }
+  }
+} satisfies NextAuthConfig;
+
+export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth(config);
+
+// Export a method to get the session on the server side
+export const getSession = () => getServerSession(config); 
